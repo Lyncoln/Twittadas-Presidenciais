@@ -21,7 +21,10 @@ presidents_users = {'Dilma Rousseff': 'dilmabr',
                     'Fernando Collor de Mello' : 'Collor'                    
                     }
 
-os.mkdirs('../data/csv')
+try:
+    os.makedirs('../data/csv')
+except FileExistsError:
+    pass
 
 for president_user in presidents_users.keys():
     print(president_user)
@@ -35,4 +38,4 @@ for president_user in presidents_users.keys():
 
     tweets_df = pd.DataFrame(all_tweets)
     tweets_df.columns = ['tweet','retweet','favoritos']
-    tweets_df.to_csv('../data/csv' + president_user + '.csv', sep=';', encoding='utf-8')
+    tweets_df.to_csv('../data/csv/' + president_user + '.csv', sep=';', encoding='utf-8')
