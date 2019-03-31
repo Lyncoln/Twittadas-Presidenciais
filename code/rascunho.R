@@ -1,5 +1,7 @@
 # Coleta feita no dia 31/03/2019
 
+## [ref] https://www.tidytextmining.com/tidytext.html
+
 library(dplyr)
 library(lexiconPT)
 library(stringr)
