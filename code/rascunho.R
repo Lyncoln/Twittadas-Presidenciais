@@ -7,7 +7,7 @@ library(tidytext)
 library(stopwords)
 library(magrittr)
 
-base_dilma <- read.csv2("dilma.csv", encoding = "UTF-8") %>% as_tibble()
+base_dilma <- read.csv2("../data/csv/Dilma Rousseff.csv", encoding = "UTF-8") %>% as_tibble()
 
 base_dilma %<>% 
   mutate(
