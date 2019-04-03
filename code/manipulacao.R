@@ -1,8 +1,5 @@
 
-# Coleta feita no dia 31/03/2019
-
-## [ref] https://www.tidytextmining.com/tidytext.html
-
+# Coleta feita no dia 03/04/2019
 
 # Pacotes utilizados ------------------------------------------------------
 
