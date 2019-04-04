@@ -12,7 +12,6 @@ library(tidytext)
 # library(lexiconPT)
 library(stopwords)
 library(tidyr)
-library(wordcloud)
 library(ggplot2)
 library(ggsci)
 
@@ -46,7 +45,7 @@ base %<>%
                   tibble(
                     word = c(stopwords("pt"), 
                              .$word[grep("^http", .$word)],
-                             "",",","rt","é","q","p","c","link","en","r","ai")
+                             "",",","rt","é","q","p","c","link","en","r","ai","h","a","ñ", )
                   )
         ) 
     )
@@ -55,19 +54,30 @@ base %<>%
 
 # Word Cloud --------------------------------------------------------------
 
-# PROBLEMA #
-
 # base %<>%
 #   mutate(
 #     wordcloud = map(
 #       tidytext,
 #       ~ .x %>%
-#         select(word) %>% 
-#         count(word, sort = T) %>% 
-#         with(wordcloud(word, n, max.words = 100, min.freq = 5, 
+#         select(word) %>%
+#         count(word, sort = T) %>%
+#         with(wordcloud(word, n, max.words = 100, min.freq = 5,
 #                        random.order = F, random.color = F, colors = rainbow(10)))
 #     )
 #   )
+
+# library(ggwordcloud)
+# library(wordcloud)
+# library(RColorBrewer)
+# 
+# map(
+#   base$tidytext,
+#   ~ base$tidytext[[1]] %>%
+#     select(word) %>%
+#     count(word, sort = T) %>%
+#     with(wordcloud(word, n, max.words = 200, min.freq = 5, colors = brewer.pal(8, "Dark2")))
+# )
+
 
 
 # 10 palavras mais frequentes ---------------------------------------------
@@ -89,21 +99,22 @@ base %<>%
 
 base %<>% 
   mutate(
-    grafico = map(
-      freq_word,
+    grafico = map2(
+      freq_word, base$presidente,
       ~ .x %>% 
         ggplot(aes(x = reorder(word, n), y = n, fill = word)) +
         geom_bar(stat = 'identity') +
         coord_flip() +
-        labs(x = "", y = "Frequência", title = "Palavras mais frequentes") +
+        labs(x = "", y = "Frequência", title = paste0("Palavras mais frequentes - ", .y),
+             caption = "Fonte: Twitter pessoal do presidente") +
         theme_minimal() +
         scale_fill_rickandmorty() +
-        guides(fill = FALSE) 
-        # geom_text(aes(label = n))
+        guides(fill = FALSE) +
+        geom_text(aes(label = n), hjust = -0.2)
     )
   )
 
-base$grafico
+
 
 
 
