@@ -45,7 +45,7 @@ base %<>%
                   tibble(
                     word = c(stopwords("pt"), 
                              .$word[grep("^http", .$word)],
-                             "",",","rt","é","q","p","c","link","en","r","ai","h","a","ñ", )
+                             "",",","rt","é","q","p","c","link","en","r","ai","h","a","ñ")
                   )
         ) 
     )
@@ -70,13 +70,23 @@ base %<>%
 # library(wordcloud)
 # library(RColorBrewer)
 # 
-# map(
-#   base$tidytext,
-#   ~ base$tidytext[[1]] %>%
-#     select(word) %>%
-#     count(word, sort = T) %>%
-#     with(wordcloud(word, n, max.words = 200, min.freq = 5, colors = brewer.pal(8, "Dark2")))
-# )
+# # map(
+# #   base$tidytext,
+# #   ~ base$tidytext[[1]] %>%
+# #     select(word) %>%
+# #     count(word, sort = T) %>%
+# #     with(wordcloud(word, n, max.words = 200, min.freq = 5, colors = brewer.pal(8, "Dark2")))
+# # )
+# 
+# base$tidytext[[1]] %>% 
+#   select(word) %>%
+#   count(word, sort = T) %>% 
+#   head(100) %>% 
+#   mutate(angle = 45 * sample(-2:2, n(), replace = TRUE, prob = c(1, 1, 4, 1, 1))) %>% 
+#   ggplot(aes(
+#     label = word, size = n, angle = angle
+#   )) +
+#   geom_text_wordcloud()
 
 
 
