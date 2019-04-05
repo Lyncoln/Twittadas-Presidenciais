@@ -9,7 +9,7 @@ library(stringr)
 library(purrr)
 library(magrittr)
 library(tidytext)
-# library(lexiconPT)
+library(lexiconPT)
 library(stopwords)
 library(tidyr)
 library(ggplot2)
@@ -54,40 +54,40 @@ base %<>%
 
 # Word Cloud --------------------------------------------------------------
 
-# base %<>%
-#   mutate(
-#     wordcloud = map(
-#       tidytext,
-#       ~ .x %>%
-#         select(word) %>%
-#         count(word, sort = T) %>%
-#         with(wordcloud(word, n, max.words = 100, min.freq = 5,
-#                        random.order = F, random.color = F, colors = rainbow(10)))
-#     )
-#   )
+library(ggwordcloud)
+library(wordcloud)
+library(RColorBrewer)
 
-# library(ggwordcloud)
-# library(wordcloud)
-# library(RColorBrewer)
-# 
-# # map(
-# #   base$tidytext,
-# #   ~ base$tidytext[[1]] %>%
-# #     select(word) %>%
-# #     count(word, sort = T) %>%
-# #     with(wordcloud(word, n, max.words = 200, min.freq = 5, colors = brewer.pal(8, "Dark2")))
-# # )
-# 
-# base$tidytext[[1]] %>% 
-#   select(word) %>%
-#   count(word, sort = T) %>% 
-#   head(100) %>% 
-#   mutate(angle = 45 * sample(-2:2, n(), replace = TRUE, prob = c(1, 1, 4, 1, 1))) %>% 
-#   ggplot(aes(
-#     label = word, size = n, angle = angle
-#   )) +
-#   geom_text_wordcloud()
 
+# Estilo 1
+
+# map(
+#   base$tidytext,
+#   ~ base$tidytext[[1]] %>%
+#     select(word) %>%
+#     count(word, sort = T) %>%
+#     with(wordcloud(word, n, max.words = 150, min.freq = 5, colors = brewer.pal(8, "Dark2")))
+# )
+
+
+# Estilo 2
+
+base %<>% 
+  mutate(
+    wordcloud = map(
+      tidytext,
+      ~ .x %>% 
+        select(word) %>%
+        count(word, sort = T) %>%
+        head(150) %>%
+        # mutate(angle = 45 * sample(-2:2, n(), replace = TRUE, prob = c(1, 1, 4, 1, 1))) %>%
+        ggplot(aes(
+          label = word, size = n, color = factor(n)
+        )) +
+        scale_size_area(max_size = 7) +
+        geom_text_wordcloud()
+    )
+  )
 
 
 # 10 palavras mais frequentes ---------------------------------------------
@@ -123,6 +123,9 @@ base %<>%
         geom_text(aes(label = n), hjust = -0.2)
     )
   )
+
+
+# Analise de Sentimento ---------------------------------------------------
 
 
 
