@@ -42,8 +42,8 @@ base %<>%
       data,
       ~ .x %>% 
         mutate(
-          tweet = as.character(tweet) %>% str_replace_all("(://|/)", ""),
-          line = 1:nrow(.)
+          line = 1:nrow(.),
+          tweet = as.character(tweet) %>% str_replace_all("(://|/)", "")
         ) %>% 
         select(line, tweet) %>% 
         unnest_tokens(word, tweet) %>% 
@@ -93,8 +93,8 @@ walk2(base$wordcloud, base$presidente,
       )
 )
 
-# 10 palavras mais frequentes ---------------------------------------------
 
+# 20 palavras mais frequentes ---------------------------------------------
 
 base %<>% 
   mutate(
@@ -125,6 +125,79 @@ walk2(base$barras, base$presidente,
     plot = .x, dpi = "retina", width = 12.38, height = 6.22    
     )
 )
+
+
+# Analise de Sentimento ---------------------------------------------------
+
+data("oplexicon_v3.0")
+data("sentiLex_lem_PT02")
+
+op30 <- oplexicon_v3.0
+sent <- sentiLex_lem_PT02
+
+
+base %<>% 
+  mutate(
+    sentiment = map(
+      tidytext,
+      ~ .x %>%  
+        filter(!word %in% "temer") %>% 
+        inner_join(op30, by = c("word" = "term")) %>% 
+        inner_join(sent %>% select(term, lex_polarity = polarity), by = c("word" = "term")) 
+    )
+  )
+
+
+base$sentiment %<>% 
+  map(
+    ~ .x %>% 
+      group_by(line) %>% 
+      summarise(
+        tweet_sentiment_op = sum(polarity),
+        tweet_sentiment_lex = sum(lex_polarity),
+        n_words = n()
+      ) %>% 
+      ungroup() %>% 
+      rowwise() %>% 
+      mutate(
+        most_neg = min(tweet_sentiment_lex, tweet_sentiment_op),
+        most_pos = max(tweet_sentiment_lex, tweet_sentiment_op)
+      ) %>% 
+      filter(n_words > 2)
+  )
+
+
+# Tweet(s) mais positivo(s)/negativo(s)
+
+base %<>% 
+  mutate(
+    # POS
+    tweet_pos = pmap(
+      list(x = data, y = sentiment),
+      function(x, y) {
+        
+        most_pos_max <- y$most_pos %>% max
+        
+        n_lines <- y %>% filter(most_pos == most_pos_max) %$% line
+        
+        x[n_lines, ]$tweet
+        
+      }
+    ),
+    #NEG
+    tweet_neg = pmap(
+      list(x = data, y = sentiment),
+      function(x, y) {
+        
+        most_neg_max <- y$most_neg %>% min
+        
+        n_lines <- y %>% filter(most_neg == most_neg_max) %$% line
+        
+        x[n_lines, ]$tweet
+        
+      }
+    )
+  )
 
 
 # # - -----------------------------------------------------------------------
@@ -161,108 +234,9 @@ walk2(base$barras, base$presidente,
 #   geom_node_text(aes(label = name), vjust = 1, hjust = 1)
 
 
-# Analise de Sentimento ---------------------------------------------------
-
-data("oplexicon_v3.0")
-data("sentiLex_lem_PT02")
-
-op30 <- oplexicon_v3.0
-sent <- sentiLex_lem_PT02
-
-# dilma_unnest <- base$tidytext[[1]]
-# 
-# dilma_sentiment <- 
-#   dilma_unnest %>% 
-#   filter(!word %in% "temer") %>% 
-#   inner_join(op30, by = c("word" = "term")) %>% 
-#   inner_join(sent %>% select(term, lex_polarity = polarity), by = c("word" = "term")) %>% 
-#   group_by(line) %>% 
-#   summarise(
-#     tweet_sentiment_op = sum(polarity),
-#     tweet_sentiment_lex = sum(lex_polarity),
-#     n_words = n()
-#   ) %>% 
-#   ungroup() %>% 
-#   rowwise() %>% 
-#   mutate(
-#     most_neg = min(tweet_sentiment_lex, tweet_sentiment_op),
-#     most_pos = max(tweet_sentiment_lex, tweet_sentiment_op)
-#   ) %>% 
-#   filter(n_words > 2)
-
-# dilma_sentiment %>% arrange(n_words %>% desc)
-# 
-# dilma_sentiment %>% 
-#   ggplot(aes(x = tweet_sentiment_op, y = tweet_sentiment_lex)) +
-#   geom_point(aes(color = n_words)) + 
-#   scale_color_continuous(low = "green", high = "red") +
-#   labs(x = "Polaridade no OpLexicon", y = "Polaridade no SentiLex") +
-#   #geom_smooth(method = "lm") +
-#   geom_vline(xintercept = 0, linetype = "dashed") +
-#   geom_hline(yintercept = 0, linetype = "dashed")
-
-# most_pos <- which.max(dilma_sentiment$most_pos)
-# 
-# cat(base$data[[1]]$tweet[(base$data[[1]]$X +1) == dilma_sentiment$line[most_pos]])
-# 
-# 
-# base$data[[1]] %>% mutate(
-#   tweet = as.character(tweet) %>% str_replace_all("(://|/)", "")
-# ) %>% anti_join(., tibble(tweet = c(.$tweet[grep("^http", .$tweet)]))) %>% 
-#   .[116,] %$% tweet
 
 
 
-
-base %<>% 
-  mutate(
-    sentiment = map(
-      tidytext,
-      ~ .x %>%  
-        filter(!word %in% "temer") %>% 
-        inner_join(op30, by = c("word" = "term")) %>% 
-        inner_join(sent %>% select(term, lex_polarity = polarity), by = c("word" = "term")) 
-    )
-  )
-
-
-base$sentiment %<>% 
-  map(
-    ~ .x %>% 
-      group_by(line) %>% 
-      summarise(
-        tweet_sentiment_op = sum(polarity),
-        tweet_sentiment_lex = sum(lex_polarity),
-        n_words = n()
-      ) %>% 
-      ungroup() %>% 
-      rowwise() %>% 
-      mutate(
-        most_neg = min(tweet_sentiment_lex, tweet_sentiment_op),
-        most_pos = max(tweet_sentiment_lex, tweet_sentiment_op)
-      ) %>% 
-      filter(n_words > 2)
-  )
-
-# Tweet mais positivo
-
-most_pos <- which.max(dilma_sentiment$most_pos)
-
-base %>% 
-  mutate(
-    tweet_pos = pmap(
-      list(x = data, y = sentiment),
-      function(x) {
-        most_pos <- which.max(dilma_sentiment$most_pos)
-      }
-    )
-  )
-
-
-base$data[[1]] %>% mutate(
-  tweet = as.character(tweet) %>% str_replace_all("(://|/)", "")
-) %>% anti_join(., tibble(tweet = c(.$tweet[grep("^http", .$tweet)]))) %>%
-  .[116,] %$% tweet
 
 
 
