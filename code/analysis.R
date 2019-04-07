@@ -13,6 +13,8 @@ library(stopwords)
 library(tidyr)
 library(ggplot2)
 library(ggwordcloud)
+library(igraph)
+library(ggraph)
 
 
 # Leitura dos dados -------------------------------------------------------
@@ -28,13 +30,11 @@ base <-
 
 # Tidy Text ---------------------------------------------------------------
 
-
 # STOPWORDS
 sw <- c(
   stopwords("pt"), 
   "",",","rt","é","q","p","c","link","en","r","ai","h","a","ñ","ª","º","pq","el","la","d"
 )
-
 
 base %<>% 
   mutate(
@@ -52,7 +52,6 @@ base %<>%
     )
   )
 
-
 {
   base$tidytext[[1]] %<>% filter(!word %in% c("dilma", "dilmabr"))                 # Dilma
   base$tidytext[[2]] %<>% filter(!word %in% c("collor"))                           # Collor
@@ -60,11 +59,10 @@ base %<>%
   base$tidytext[[4]] %<>% filter(!word %in% c("jair", "bolsonaro"))                #Bolsonaro
   base$tidytext[[5]] %<>% filter(!word %in% c("lula", "lulapresidente"))           #Lula
   base$tidytext[[6]] %<>% filter(!word %in% c("michel", "temer"))                  #Temer
-  }
+}
 
 
 # Word Cloud --------------------------------------------------------------
-
 
 base %<>% 
   mutate(
@@ -84,7 +82,6 @@ base %<>%
         theme(plot.title = element_text(size = 8))
     )
   )
-
 
 # Salvando
 walk2(base$wordcloud, base$presidente,
@@ -118,7 +115,6 @@ base %<>%
     )
   )
 
-
 # Salvando
 walk2(base$barras, base$presidente,
   ~ ggsave(
@@ -136,7 +132,6 @@ data("sentiLex_lem_PT02")
 op30 <- oplexicon_v3.0
 sent <- sentiLex_lem_PT02
 
-
 base %<>% 
   mutate(
     sentiment = map(
@@ -147,7 +142,6 @@ base %<>%
         inner_join(sent %>% select(term, lex_polarity = polarity), by = c("word" = "term")) 
     )
   )
-
 
 base$sentiment %<>% 
   map(
@@ -166,7 +160,6 @@ base$sentiment %<>%
       ) %>% 
       filter(n_words > 2)
   )
-
 
 # Tweet(s) mais positivo(s)/negativo(s)
 base %<>% 
@@ -200,36 +193,56 @@ base %<>%
   )
 
 
-# # - -----------------------------------------------------------------------
+# Grafos ------------------------------------------------------------------
 
-# library(igraph)
-# library(ggraph)
-# 
-# dilma_bigram <- base$data[[1]] %>%
-#   mutate(
-#     tweet = as.character(tweet) %>% str_replace_all("(://|/)", ""),
-#     line = 1:nrow(.)
-#   ) %>%
-#   select(line, tweet) %>%
-#   unnest_tokens(bigram, tweet, token = "ngrams", n = 2) %>%
-#   separate(bigram, c("word1", "word2"), sep = " ") %>%
-#   mutate(
-#     word1 = str_remove_all(word1, "[:number:]{1,}"),
-#     word2 = str_remove_all(word2, "[:number:]{1,}")
-#     ) %>%
-#   filter(!word1 %in% sw) %>%
-#   filter(!word2 %in% sw) %>%
-#   count(word1, word2, sort = TRUE)
-# 
-# dilma_bigram_graph <-
-#   dilma_bigram %>%
-#   filter(n > 10) %>%
-#   graph_from_data_frame()
-# 
-# set.seed(2019)
-# 
-# ggraph(dilma_bigram_graph, layout = "fr") +
-#   geom_edge_link() +
-#   geom_node_point() +
-#   geom_node_text(aes(label = name), vjust = 1, hjust = 1)
+base %<>% 
+  mutate(
+    base_grafo = map2(
+      data, c(6,6,5,8,9,10),
+      ~ .x %>% 
+        mutate(
+          tweet = as.character(tweet) %>% str_replace_all("(://|/)", ""),
+          line = 1:nrow(.)
+        ) %>%
+        select(line, tweet) %>%
+        unnest_tokens(bigram, tweet, token = "ngrams", n = 2) %>%
+        separate(bigram, c("word1", "word2"), sep = " ") %>%
+        mutate(
+          word1 = str_remove_all(word1, "[:number:]{1,}"),
+          word2 = str_remove_all(word2, "[:number:]{1,}")
+        ) %>%
+        na.omit() %>% 
+        filter(!word1 %in% sw) %>%
+        filter(!word2 %in% sw) %>%
+        count(word1, word2, sort = TRUE) %>%
+        filter(n > .y) %>%
+        graph_from_data_frame()
+    )
+  )
 
+base %<>% 
+  mutate(
+    grafos = map2(
+      base_grafo, presidente,
+      ~ .x %>% 
+        ggraph(layout = 'fr') +
+        geom_edge_link(
+          aes(start_cap = label_rect(node1.name),
+              end_cap = label_rect(node2.name)), 
+          arrow = arrow(length = unit(2, 'mm'))
+        ) +
+        geom_node_point() +
+        geom_node_text(aes(label = name), vjust = 1, hjust = 1) +
+        theme_void() +
+        ggtitle(.y)
+    )
+  )
+
+# Salvando
+walk2(base$grafos, base$presidente,
+      ~ ggsave(
+        paste0("../man/img/grafos/", .y, ".png"), 
+        plot = .x, dpi = "retina", width = 13, height = 13
+      )
+)
+ 
