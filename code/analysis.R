@@ -28,8 +28,8 @@ base <-
 
 # Tidy Text ---------------------------------------------------------------
 
-# STOPWORDS
 
+# STOPWORDS
 sw <- c(
   stopwords("pt"), 
   "",",","rt","é","q","p","c","link","en","r","ai","h","a","ñ","ª","º","pq","el","la","d"
@@ -60,7 +60,8 @@ base %<>%
   base$tidytext[[4]] %<>% filter(!word %in% c("jair", "bolsonaro"))                #Bolsonaro
   base$tidytext[[5]] %<>% filter(!word %in% c("lula", "lulapresidente"))           #Lula
   base$tidytext[[6]] %<>% filter(!word %in% c("michel", "temer"))                  #Temer
-}
+  }
+
 
 # Word Cloud --------------------------------------------------------------
 
@@ -168,10 +169,9 @@ base$sentiment %<>%
 
 
 # Tweet(s) mais positivo(s)/negativo(s)
-
 base %<>% 
   mutate(
-    # POS
+    #POS
     tweet_pos = pmap(
       list(x = data, y = sentiment),
       function(x, y) {
@@ -201,28 +201,28 @@ base %<>%
 
 
 # # - -----------------------------------------------------------------------
-# 
+
 # library(igraph)
 # library(ggraph)
 # 
-# dilma_bigram <- base$data[[1]] %>% 
+# dilma_bigram <- base$data[[1]] %>%
 #   mutate(
 #     tweet = as.character(tweet) %>% str_replace_all("(://|/)", ""),
 #     line = 1:nrow(.)
-#   ) %>% 
-#   select(line, tweet) %>% 
-#   unnest_tokens(bigram, tweet, token = "ngrams", n = 2) %>% 
-#   separate(bigram, c("word1", "word2"), sep = " ") %>% 
+#   ) %>%
+#   select(line, tweet) %>%
+#   unnest_tokens(bigram, tweet, token = "ngrams", n = 2) %>%
+#   separate(bigram, c("word1", "word2"), sep = " ") %>%
 #   mutate(
 #     word1 = str_remove_all(word1, "[:number:]{1,}"),
 #     word2 = str_remove_all(word2, "[:number:]{1,}")
-#     ) %>% 
+#     ) %>%
 #   filter(!word1 %in% sw) %>%
-#   filter(!word2 %in% sw) %>% 
+#   filter(!word2 %in% sw) %>%
 #   count(word1, word2, sort = TRUE)
 # 
-# dilma_bigram_graph <- 
-#   dilma_bigram %>% 
+# dilma_bigram_graph <-
+#   dilma_bigram %>%
 #   filter(n > 10) %>%
 #   graph_from_data_frame()
 # 
@@ -232,15 +232,4 @@ base %<>%
 #   geom_edge_link() +
 #   geom_node_point() +
 #   geom_node_text(aes(label = name), vjust = 1, hjust = 1)
-
-
-
-
-
-
-
-
-
-
-
 
