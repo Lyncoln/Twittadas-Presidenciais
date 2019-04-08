@@ -42,10 +42,10 @@ base %<>%
       data,
       ~ .x %>% 
         mutate(
-          line = 1:nrow(.),
+          tweet_line = 1:nrow(.),
           tweet = as.character(tweet) %>% str_replace_all("(://|/)", "")
         ) %>% 
-        select(line, tweet) %>% 
+        select(tweet_line, tweet) %>% 
         unnest_tokens(word, tweet) %>% 
         mutate(word = str_remove_all(word, "[:number:]{1,}")) %>% 
         anti_join(., tibble(word = c(sw, .$word[grep("^http", .$word)]))) 
@@ -55,10 +55,9 @@ base %<>%
 {
   base$tidytext[[1]] %<>% filter(!word %in% c("dilma", "dilmabr"))                 # Dilma
   base$tidytext[[2]] %<>% filter(!word %in% c("collor"))                           # Collor
-  base$tidytext[[3]] %<>% filter(!word %in% c("itamar", "franco", "itamarfranco")) #Itamar
-  base$tidytext[[4]] %<>% filter(!word %in% c("jair", "bolsonaro"))                #Bolsonaro
-  base$tidytext[[5]] %<>% filter(!word %in% c("lula", "lulapresidente"))           #Lula
-  base$tidytext[[6]] %<>% filter(!word %in% c("michel", "temer"))                  #Temer
+  base$tidytext[[3]] %<>% filter(!word %in% c("jair", "bolsonaro"))                #Bolsonaro
+  base$tidytext[[4]] %<>% filter(!word %in% c("lula", "lulapresidente"))           #Lula
+  base$tidytext[[5]] %<>% filter(!word %in% c("michel", "temer"))                  #Temer
 }
 
 
@@ -146,7 +145,7 @@ base %<>%
 base$sentiment %<>% 
   map(
     ~ .x %>% 
-      group_by(line) %>% 
+      group_by(tweet_line) %>% 
       summarise(
         tweet_sentiment_op = sum(polarity),
         tweet_sentiment_lex = sum(lex_polarity),
@@ -156,7 +155,8 @@ base$sentiment %<>%
       rowwise() %>% 
       mutate(
         most_neg = min(tweet_sentiment_lex, tweet_sentiment_op),
-        most_pos = max(tweet_sentiment_lex, tweet_sentiment_op)
+        most_pos = max(tweet_sentiment_lex, tweet_sentiment_op),
+        soma_sentiment = most_neg+most_pos
       ) %>% 
       filter(n_words > 2)
   )
@@ -169,9 +169,11 @@ base %<>%
       list(x = data, y = sentiment),
       function(x, y) {
         
-        most_pos_max <- y$most_pos %>% max
+        # most_pos_max <- y$most_pos %>% max
+        most_pos_max <- y$soma_sentiment %>% max
         
-        n_lines <- y %>% filter(most_pos == most_pos_max) %$% line
+        # n_lines <- y %>% filter(most_pos == most_pos_max) %$% tweet_line
+        n_lines <- y %>% filter(soma_sentiment == most_pos_max) %$% tweet_line
         
         x[n_lines, ]$tweet
         
@@ -182,9 +184,11 @@ base %<>%
       list(x = data, y = sentiment),
       function(x, y) {
         
-        most_neg_max <- y$most_neg %>% min
+        # most_neg_max <- y$most_neg %>% min
+        most_neg_max <- y$soma_sentiment %>% min
         
-        n_lines <- y %>% filter(most_neg == most_neg_max) %$% line
+        # n_lines <- y %>% filter(most_neg == most_neg_max) %$% tweet_line
+        n_lines <- y %>% filter(soma_sentiment == most_neg_max) %$% tweet_line
         
         x[n_lines, ]$tweet
         
