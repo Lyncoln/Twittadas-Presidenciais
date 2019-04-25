@@ -1,8 +1,12 @@
-## Tweetadas Presidenciais
+## Twittadas Presidenciais
 
 ---
 
-Responsáveis pelo trabalho:
+>- Shiny: https://luizfcp.shinyapps.io/twittadas_presidenciais/
+
+---
+
+Autores:
 
 * Luiz Fernando Coelho Passos
 * Daniel dos Santos
