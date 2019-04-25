@@ -15,13 +15,14 @@ library(ggplot2)
 library(ggwordcloud)
 library(igraph)
 library(ggraph)
+library(shinydashboard)
 
 
 # Leitura dos dados -------------------------------------------------------
 
 base <- 
-  map(list.files("../data/csv"),
-      ~ read.csv2(paste0("../data/csv/", .x), encoding = "UTF-8") %>% 
+  map(list.files("www/csv/"),
+      ~ read.csv2(paste0("www/csv/", .x), encoding = "UTF-8") %>% 
         cbind(presidente = .x %>% str_sub(end = -5)) %>% as_tibble  
   ) %>% 
   map(~ .x %>% mutate_if(is.factor, as.character)) %>% 
@@ -59,40 +60,30 @@ base %<>%
   base$tidytext[[3]] %<>% filter(!word %in% c("jair", "bolsonaro"))        # Bolsonaro
   base$tidytext[[4]] %<>% filter(!word %in% c("lula", "lulapresidente"))   # Lula
   base$tidytext[[5]] %<>% filter(!word %in% c("michel", "temer"))          # Temer
-}
+  }
 
 
 # Word Cloud --------------------------------------------------------------
 
 base %<>% 
   mutate(
-    wordcloud = pmap(
-      list(x=tidytext, y=presidente, z=c(60,60,54,71,62)),
-      function(x,y,z) {
-        x %>% 
-          select(word) %>%
-          count(word, sort = T) %>%
-          head(100) %>%
-          ggplot(aes(
-            label = word, size = n, color = factor(n)
-          )) +
-          scale_size_area(max_size = 11) +
-          geom_text_wordcloud() + 
-          scale_color_manual(values = c(rep("#009c3b", z/1.6), rep("#ffdf00", z/3), rep("#002776", z/10))) +
-          theme_minimal() +
-          ggtitle(paste0("Word Cloud - ", y)) +
-          theme(plot.title = element_text(size = 13))
-      }
+    wordcloud = map2(
+      tidytext, c(60,60,54,71,62),
+      ~ .x %>% 
+        select(word) %>%
+        count(word, sort = T) %>%
+        head(100) %>%
+        ggplot(aes(
+          label = word, size = n, color = factor(n)
+        )) +
+        scale_size_area(max_size = 11) +
+        geom_text_wordcloud() + 
+        scale_color_manual(values = c(rep("#009c3b", .y/1.6), rep("#ffdf00", .y/3), rep("#002776", .y/10))) +
+        theme_minimal() +
+        # ggtitle(paste0("Word Cloud - ", .y)) +
+        theme(plot.title = element_text(size = 16))
     )
   )
-
-# Salvando
-walk2(base$wordcloud, base$presidente,
-      ~ ggsave(
-        paste0("../man/figures/word cloud/", .y, ".png"),
-        plot = .x, dpi = "retina", width = 6.53, height = 3.11
-      )
-)
 
 
 # 20 palavras mais frequentes ---------------------------------------------
@@ -118,14 +109,6 @@ base %<>%
         geom_text(aes(label = n), hjust = 1.3, color = "white", fontface = "bold")
     )
   )
-
-# Salvando
-walk2(base$barras, base$presidente,
-  ~ ggsave(
-    paste0("../man/figures/bar chart/", .y, ".png"),
-    plot = .x, dpi = "retina", width = 12.38, height = 6.22
-    )
-)
 
 
 # Analise de Sentimento ---------------------------------------------------
@@ -207,7 +190,7 @@ base %<>%
 base %<>% 
   mutate(
     base_grafo = map2(
-      data, c(9,10,10,15,13),
+      data, c(10,10,8,15,14),
       ~ .x %>% 
         mutate(
           tweet = as.character(tweet) %>% str_replace_all("(://|/)", "") %>% str_remove_all("^http"),
@@ -229,7 +212,6 @@ base %<>%
             str_detect(tweet, "Sérgio Moro")               ~ str_replace_all(tweet, "Sérgio Moro", "Sérgio_Moro"),
             str_detect(tweet, "Rui Costa")                 ~ str_replace_all(tweet, "Rui Costa", "Rui_Costa"),
             str_detect(tweet, "Ricardo Stuckert")          ~ str_replace_all(tweet, "Ricardo Stuckert", "Ricardo_Stuckert"),
-            str_detect(tweet, "Henrique Meirelles")        ~ str_replace_all(tweet, "Henrique Meirelles", "Henrique_Meirelles"),
             TRUE ~ as.character(tweet)
           )
         ) %>%
@@ -258,7 +240,7 @@ base %<>%
         geom_edge_link(
           aes(start_cap = label_rect(node1.name),
               end_cap = label_rect(node2.name)),
-          # edge_alpha = n, edge_width = n), 
+              # edge_alpha = n, edge_width = n), 
           arrow = arrow(length = unit(2, 'mm'))
         ) +
         geom_node_point() +
@@ -269,12 +251,3 @@ base %<>%
         theme(plot.title = element_text(size = 18))
     )
   )
-
-# Salvando
-walk2(base$grafos, base$presidente,
-      ~ ggsave(
-        paste0("../man/figures/grafos/", .y, ".png"),
-        plot = .x, dpi = "retina", width = 11, height = 10
-      )
-)
- 
