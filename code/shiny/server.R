@@ -29,26 +29,15 @@ function(input, output, session) {
   output$tweets_pos_dilma     <- renderPrint({base$tweet_pos[[1]] %>% matrix() %>% `colnames<-`("Tweets ranqueados como os mais positivos") %>% `rownames<-`(c("-", "-"))})
   
   output$tweets_neg_collor    <- renderPrint({base$tweet_neg[[2]][1] %>% matrix() %>% `colnames<-`("Tweet ranqueado como o mais negativo") %>% `rownames<-`(c("-"))})
-  output$tweets_pos_collor    <- renderPrint({base$tweet_pos[[2]] %>% matrix() %>% `colnames<-`("Tweets ranqueados como os mais positivos") %>% `rownames<-`(c("-", "-"))})
+  output$tweets_pos_collor    <- renderPrint({base$tweet_pos[[2]][1] %>% matrix() %>% `colnames<-`("Tweet ranqueado como o mais positivo") %>% `rownames<-`(c("-"))})
   
   output$tweets_neg_bolsonaro <- renderPrint({base$tweet_neg[[3]] %>% matrix() %>% `colnames<-`("Tweet ranqueado como o mais negativo") %>% `rownames<-`(c("-"))})
   output$tweets_pos_bolsonaro <- renderPrint({base$tweet_pos[[3]] %>% matrix() %>% `colnames<-`("Tweet ranqueado como o mais positivo") %>% `rownames<-`(c("-"))})
   
-  output$tweets_neg_lula      <- renderPrint({base$tweet_neg[[4]] %>% matrix() %>% `colnames<-`("Tweets ranqueados como os mais negativos") %>% `rownames<-`(c("-", "-"))})
+  output$tweets_neg_lula      <- renderPrint({base$tweet_neg[[4]][1] %>% matrix() %>% `colnames<-`("Tweet ranqueado como o mai negativo") %>% `rownames<-`(c("-"))})
   output$tweets_pos_lula      <- renderPrint({base$tweet_pos[[4]] %>% matrix() %>% `colnames<-`("Tweet ranqueado como o mais positivo") %>% `rownames<-`(c("-"))})
   
-  output$tweets_neg_temer     <- renderPrint({base$tweet_neg[[5]] %>% matrix() %>% `colnames<-`("Tweets ranqueados como os mais negativos") %>% `rownames<-`(c("-", "-"))})
+  output$tweets_neg_temer     <- renderPrint({base$tweet_neg[[5]][1] %>% matrix() %>% `colnames<-`("Tweet ranqueado como o mais negativo") %>% `rownames<-`(c("-"))})
   output$tweets_pos_temer     <- renderPrint({base$tweet_pos[[5]] %>% matrix() %>% `colnames<-`("Tweets ranqueados como os mais positivos") %>% `rownames<-`(c("-", "-"))})
   
 }
-
-
-
-
-
-
-
-
-
-
-

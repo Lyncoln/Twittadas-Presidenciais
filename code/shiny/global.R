@@ -20,10 +20,14 @@ library(shinydashboard)
 
 # Leitura dos dados -------------------------------------------------------
 
+users <- list('dilmabr', 'Collor', 'jairbolsonaro', 'LulaOficial', 'MichelTemer')
+
 base <- 
-  map(list.files("www/csv/"),
+  map2(list.files("www/csv/"), users,
       ~ read.csv2(paste0("www/csv/", .x), encoding = "UTF-8") %>% 
-        cbind(presidente = .x %>% str_sub(end = -5)) %>% as_tibble  
+        cbind(presidente = .x %>% str_sub(end = -5)) %>%
+        cbind(user = .y) %>% 
+        as_tibble  
   ) %>% 
   map(~ .x %>% mutate_if(is.factor, as.character)) %>% 
   bind_rows() %>% 
@@ -60,7 +64,7 @@ base %<>%
   base$tidytext[[3]] %<>% filter(!word %in% c("jair", "bolsonaro"))        # Bolsonaro
   base$tidytext[[4]] %<>% filter(!word %in% c("lula", "lulapresidente"))   # Lula
   base$tidytext[[5]] %<>% filter(!word %in% c("michel", "temer"))          # Temer
-  }
+}
 
 
 # Word Cloud --------------------------------------------------------------
@@ -167,6 +171,20 @@ base %<>%
         
       }
     ),
+    tweet_pos_id = pmap(
+      list(x = data, y = sentiment),
+      function(x, y) {
+        
+        # most_pos_max <- y$most_pos %>% max
+        most_pos_max <- y$soma_sentiment %>% max
+        
+        # n_lines <- y %>% filter(most_pos == most_pos_max) %$% tweet_line
+        n_lines <- y %>% filter(soma_sentiment == most_pos_max) %$% tweet_line
+        
+        x[n_lines, ]$id
+        
+      }
+    ),
     #NEG
     tweet_neg = pmap(
       list(x = data, y = sentiment),
@@ -181,8 +199,42 @@ base %<>%
         x[n_lines, ]$tweet
         
       }
+    ),
+    tweet_neg_id = pmap(
+      list(x = data, y = sentiment),
+      function(x, y) {
+        
+        # most_neg_max <- y$most_neg %>% min
+        most_neg_max <- y$soma_sentiment %>% min
+        
+        # n_lines <- y %>% filter(most_neg == most_neg_max) %$% tweet_line
+        n_lines <- y %>% filter(soma_sentiment == most_neg_max) %$% tweet_line
+        
+        x[n_lines, ]$id
+        
+      }
     )
   )
+
+
+base %<>% 
+  mutate(
+    #POS
+    tweet_pos = pmap(
+      list(x = tweet_pos, y = tweet_pos_id, z = 1:5),
+      function(x, y, z) {
+        paste0(x, " <https://twitter.com/", data[[z]]$user[1], "/status/", y, ">.")
+      }
+    ),
+    #NEG
+    tweet_neg = pmap(
+      list(x = tweet_neg, y = tweet_neg_id, z = 1:5),
+      function(x, y, z) {
+        paste0(x, " <https://twitter.com/", data[[z]]$user[1], "/status/", y, ">.")
+      }
+    )
+  )
+
 
 
 # Grafos ------------------------------------------------------------------
