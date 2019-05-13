@@ -262,8 +262,8 @@ base %<>%
           arrow = arrow(length = unit(2, 'mm'))
         ) +
         geom_node_point() +
-        geom_node_text(aes(label = name), repel = TRUE,
-                       point.padding = unit(0.2, "lines")) +
+        geom_node_text(aes(label = name), repel = TRUE, size = 6.2,
+                       point.padding = unit(0.5, "lines")) +
         theme_void() +
         ggtitle(paste0("Grafo - ", .y)) +
         theme(plot.title = element_text(size = 18))
@@ -274,7 +274,7 @@ base %<>%
 walk2(base$grafos, base$presidente,
       ~ ggsave(
         paste0("../man/figures/grafos/", .y, ".png"),
-        plot = .x, dpi = "retina", width = 11, height = 10
+        plot = .x, dpi = "retina", width = 10, height = 10.5
       )
 )
  
