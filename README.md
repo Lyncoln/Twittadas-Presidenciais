@@ -2,20 +2,20 @@
 
 Trabalho apresentado no **IV Seminário Internacional de Estatística com R** na categoria Resumo simples - Sessão Pôster.
 
-#### Pôster
+### Pôster
 
 <a href="http://rpubs.com/luizfcp/twittadas_presidenciais">
 <img src="man/figures/poster.jpg" width="50%" height="50%"/>
 </a>
 
-#### App Shiny
+### App Shiny
 ---
 
 >- Shiny: https://luizfcp.shinyapps.io/twittadas_presidenciais/
 
 ---
 
-Autores:
+### Autores
 
 * Luiz Fernando Coelho Passos
 * Daniel dos Santos
