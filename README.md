@@ -5,7 +5,7 @@ Trabalho apresentado no **IV Seminário Internacional de Estatística com R** na
 #### Pôster
 
 <a href="http://rpubs.com/luizfcp/twittadas_presidenciais">
-<img src="man/figures/poster.png" width="50%" height="50%"/>
+<img src="man/figures/poster.jpg" width="50%" height="50%"/>
 </a>
 
 #### App Shiny
